@@ -41,6 +41,6 @@
   "license": "Apache-2.0",
   "scripts": {
     "prepublish": "in-publish && python ./build/checkversion.py && python ./build/all.py && python ./build/build.py --debug || not-in-publish",
-    "install": "export PYTHON_EXECUTABLE=\"python\" && if [ -x \"`which python2`\" ]; then PYTHON_EXECUTABLE=\"python2\"; fi; $PYTHON_EXECUTABLE ./build/all.py && $PYTHON_EXECUTABLE./build/build.py"
+    "install": "export PYTHON_EXECUTABLE=\"python\" && if [ -x \"`which python2`\" ]; then PYTHON_EXECUTABLE=\"python2\"; fi; $PYTHON_EXECUTABLE ./build/all.py && $PYTHON_EXECUTABLE ./build/build.py"
   }
 }
