@@ -16,18 +16,18 @@
  */
 
 describe('TtmlTextParser', function() {
-  var originalCueConstructor;
+  var originalVTTCue;
 
   beforeAll(function() {
-    originalCueConstructor = shaka.media.TextEngine.CueConstructor;
+    originalVTTCue = window.VTTCue;
   });
 
   afterAll(function() {
-    shaka.media.TextEngine.CueConstructor = originalCueConstructor;
+    window.VTTCue = originalVTTCue;
   });
 
   beforeEach(function() {
-    shaka.media.TextEngine.CueConstructor = function(start, end, text) {
+    window.VTTCue = function(start, end, text) {
       this.startTime = start;
       this.endTime = end;
       this.text = text;
@@ -36,6 +36,10 @@ describe('TtmlTextParser', function() {
 
   it('supports no cues', function() {
     verifyHelper([], '<tt></tt>');
+  });
+
+  it('supports div with no cues but whitespace', function() {
+    verifyHelper([], '<tt><body><div>  \r\n </div></body></tt>');
   });
 
   it('rejects invalid ttml', function() {
@@ -423,7 +427,7 @@ describe('TtmlTextParser', function() {
 
   it('uses a workaround for browsers not supporting align=center', function() {
 
-    shaka.media.TextEngine.CueConstructor = function(start, end, text) {
+    window.VTTCue = function(start, end, text) {
       var align = 'middle';
       Object.defineProperty(this, 'align', {
         get: function() { return align; },
