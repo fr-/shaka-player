@@ -80,8 +80,7 @@ shaka.test.FakeMediaSourceEngine = function(segmentData, opt_drift) {
   spyOn(this, 'clear').and.callThrough();
   spyOn(this, 'flush').and.callThrough();
   spyOn(this, 'endOfStream').and.callThrough();
-  spyOn(this, 'setTimestampOffset').and.callThrough();
-  spyOn(this, 'setAppendWindowEnd').and.callThrough();
+  spyOn(this, 'setStreamProperties').and.callThrough();
   spyOn(this, 'setDuration').and.callThrough();
   spyOn(this, 'getDuration').and.callThrough();
 };
@@ -156,21 +155,28 @@ shaka.test.FakeMediaSourceEngine.prototype.bufferedAheadOf = function(
     type, start, opt_tolerance) {
   if (this.segments[type] === undefined) throw new Error('unexpected type');
 
+  var ContentType = shaka.util.ManifestParserUtils.ContentType;
+  var hasSegment = (function(i) {
+    return this.segments[type][i] ||
+        (type === ContentType.VIDEO && this.segments['trickvideo'] &&
+         this.segments['trickvideo'][i]);
+  }.bind(this));
+
   var tolerance = 0;
   // Note: |start| may equal the end of the last segment, so |first|
   // may equal segments[type].length
   var first = this.toIndex_(type, start);
-  if (!this.segments[type][first] && opt_tolerance) {
+  if (!hasSegment(first) && opt_tolerance) {
     first = this.toIndex_(type, start + opt_tolerance);
     tolerance = opt_tolerance;
   }
-  if (!this.segments[type][first])
+  if (!hasSegment(first))
     return 0;  // Unbuffered.
 
   // Find the first gap.
-  var last = this.segments[type].indexOf(false, first);
-  if (last < 0)
-    last = this.segments[type].length;  // Buffered everything.
+  var last = first;
+  while (last < this.segments[type].length && hasSegment(last))
+    last++;
 
   return this.toTime_(type, last) - start + tolerance;
 };
@@ -183,13 +189,20 @@ shaka.test.FakeMediaSourceEngine.prototype.appendBuffer = function(
 
   // Remains 'video' even when we detect a 'trickvideo' segment.
   var originalType = type;
+  var ContentType = shaka.util.ManifestParserUtils.ContentType;
 
   // Set init segment.
   var i = this.segmentData[type].initSegments.indexOf(data);
-  if (i < 0 && type == 'video' && this.segmentData['trickvideo']) {
+  if (i < 0 && type == ContentType.VIDEO &&
+      this.segmentData['trickvideo']) {
     // appendBuffer('video', ...) might be for 'trickvideo' data.
     i = this.segmentData['trickvideo'].initSegments.indexOf(data);
-    if (i >= 0) type = 'trickvideo';
+    if (i >= 0) {
+      // 'trickvideo' value is only used for testing.
+      // Cast to the ContentType enum for compatibility.
+      type = /**@type {shaka.util.ManifestParserUtils.ContentType} */(
+          'trickvideo');
+    }
   }
   if (i >= 0) {
     expect(startTime).toBe(null);
@@ -203,10 +216,16 @@ shaka.test.FakeMediaSourceEngine.prototype.appendBuffer = function(
 
   // Set media segment.
   i = this.segmentData[type].segments.indexOf(data);
-  if (i < 0 && type == 'video' && this.segmentData['trickvideo']) {
+  if (i < 0 && type == ContentType.VIDEO &&
+      this.segmentData['trickvideo']) {
     // appendBuffer('video', ...) might be for 'trickvideo' data.
     i = this.segmentData['trickvideo'].segments.indexOf(data);
-    if (i >= 0) type = 'trickvideo';
+    if (i >= 0) {
+      // 'trickvideo' value is only used for testing.
+      // Cast to the ContentType enum for compatibility.
+      type = /**@type {shaka.util.ManifestParserUtils.ContentType} */(
+          'trickvideo');
+    }
   }
   if (i < 0)
     throw new Error('unexpected data');
@@ -259,9 +278,14 @@ shaka.test.FakeMediaSourceEngine.prototype.clear = function(type) {
     this.segments[type][i] = false;
   }
 
+  var ContentType = shaka.util.ManifestParserUtils.ContentType;
+
   // If we're clearing video, clear the segment list for 'trickvideo', too.
-  if (type == 'video' && this.segments['trickvideo']) {
-    this.clear('trickvideo');
+  if (type == ContentType.VIDEO && this.segments['trickvideo']) {
+    // 'trickvideo' value is only used for testing.
+    // Cast to the ContentType enum for compatibility.
+    this.clear(
+        /**@type {shaka.util.ManifestParserUtils.ContentType} */('trickvideo'));
   }
 
   return Promise.resolve();
@@ -275,17 +299,11 @@ shaka.test.FakeMediaSourceEngine.prototype.flush = function(type) {
 
 
 /** @override */
-shaka.test.FakeMediaSourceEngine.prototype.setTimestampOffset = function(
-    type, offset) {
+shaka.test.FakeMediaSourceEngine.prototype.setStreamProperties = function(
+    type, offset, appendWindowEnd) {
   if (this.segments[type] === undefined) throw new Error('unexpected type');
   this.timestampOffsets_[type] = offset;
-  return Promise.resolve();
-};
-
-
-/** @override */
-shaka.test.FakeMediaSourceEngine.prototype.setAppendWindowEnd = function(
-    type, appendWindowEnd) {
+  // Don't use |appendWindowEnd|.
   return Promise.resolve();
 };
 

@@ -112,6 +112,8 @@ describe('Player', function() {
           decodedFrames: jasmine.any(Number),
           droppedFrames: jasmine.any(Number),
           estimatedBandwidth: jasmine.any(Number),
+
+          loadLatency: jasmine.any(Number),
           playTime: jasmine.any(Number),
           bufferingTime: jasmine.any(Number),
 
@@ -120,8 +122,16 @@ describe('Player', function() {
           switchHistory: jasmine.arrayContaining([{
             timestamp: jasmine.any(Number),
             id: jasmine.any(Number),
-            type: 'video',
+            // Include 'window' to use uncompiled version version of the
+            // library.
+            type: window.shaka.util.ManifestParserUtils.ContentType.VIDEO,
             fromAdaptation: true
+          }]),
+
+          stateHistory: jasmine.arrayContaining([{
+            state: 'playing',
+            timestamp: jasmine.any(Number),
+            duration: jasmine.any(Number)
           }])
         };
         expect(stats).toEqual(expected);
@@ -160,12 +170,8 @@ describe('Player', function() {
       var testName =
           asset.source + ' / ' + asset.name + ' : ' + asset.manifestUri;
 
-      var wit = asset.focus ? fit : it;
+      var wit = asset.focus ? fit : external_it;
       wit(testName, function(done) {
-        if (!getClientArg('external')) {
-          pending('Skipping tests that use external assets.');
-        }
-
         if (asset.drm.length && !asset.drm.some(
             function(keySystem) { return support.drm[keySystem]; })) {
           pending('None of the required key systems are supported.');

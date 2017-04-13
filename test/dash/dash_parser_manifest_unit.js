@@ -30,6 +30,7 @@ describe('DashParser Manifest', function() {
     playerInterface = {
       networkingEngine: fakeNetEngine,
       filterPeriod: function() {},
+      onTimelineRegionAdded: fail,  // Should not have any EventStream elements.
       onEvent: onEventSpy,
       onError: fail
     };
@@ -623,6 +624,7 @@ describe('DashParser Manifest', function() {
     it('invalid XML', function(done) {
       var source = '<not XML';
       var error = new shaka.util.Error(
+          shaka.util.Error.Severity.CRITICAL,
           shaka.util.Error.Category.MANIFEST,
           shaka.util.Error.Code.DASH_INVALID_XML);
       Dash.testFails(done, source, error);
@@ -630,6 +632,7 @@ describe('DashParser Manifest', function() {
 
     it('failed network requests', function(done) {
       var expectedError = new shaka.util.Error(
+          shaka.util.Error.Severity.CRITICAL,
           shaka.util.Error.Category.NETWORK,
           shaka.util.Error.Code.BAD_HTTP_STATUS);
 
@@ -643,6 +646,7 @@ describe('DashParser Manifest', function() {
     it('missing MPD element', function(done) {
       var source = '<XML></XML>';
       var error = new shaka.util.Error(
+          shaka.util.Error.Severity.CRITICAL,
           shaka.util.Error.Category.MANIFEST,
           shaka.util.Error.Code.DASH_INVALID_XML);
       Dash.testFails(done, source, error);
@@ -657,6 +661,7 @@ describe('DashParser Manifest', function() {
         '</MPD>'
       ].join('\n');
       var error = new shaka.util.Error(
+          shaka.util.Error.Severity.CRITICAL,
           shaka.util.Error.Category.MANIFEST,
           shaka.util.Error.Code.DASH_EMPTY_ADAPTATION_SET);
       Dash.testFails(done, source, error);
@@ -669,165 +674,34 @@ describe('DashParser Manifest', function() {
         '</MPD>'
       ].join('\n');
       var error = new shaka.util.Error(
+          shaka.util.Error.Severity.CRITICAL,
           shaka.util.Error.Category.MANIFEST,
           shaka.util.Error.Code.DASH_EMPTY_PERIOD);
       Dash.testFails(done, source, error);
     });
-  });
 
-  describe('parses inband information', function() {
-    var nonEmsg = new Uint8Array([
-      0, 0, 0, 33, 108, 109, 115, 103,
-      117, 114, 110, 58, 109, 112, 101,
-      103, 58, 100, 97, 115, 104, 58,
-      101, 118, 101, 110, 116, 58, 50,
-      48, 49, 50, 0
-    ]);
-
-    var emsgUpdate = new Uint8Array([
-      0, 0, 0, 52, 101, 109, 115, 103,
-      0, 0, 0, 0, 117, 114, 110, 58,
-      109, 112, 101, 103, 58, 100, 97,
-      115, 104, 58, 101, 118, 101, 110,
-      116, 58, 50, 48, 49, 50, 0, 0, 0,
-      49, 0, 0, 0, 8, 0, 0, 255, 255, 116,
-      101, 115, 116
-    ]);
-
-    var emsgCustom = new Uint8Array([
-      0, 0, 0, 59, 101, 109, 115, 103,
-      0, 0, 0, 0, 102, 111, 111, 58, 98,
-      97, 114, 58, 99, 117, 115, 116, 111,
-      109, 100, 97, 116, 97, 115, 99, 104,
-      101, 109, 101, 0, 49, 0, 0, 0, 0,
-      1, 0, 0, 0, 8, 0, 0, 255, 255, 0,
-      0, 0, 1, 116, 101, 115, 116
-    ]);
-
-    it('registers response filter', function(done) {
-      var manifestText = [
-        '<MPD minBufferTime="PT75S">',
+    it('duplicate Representation ids with live', function(done) {
+      var source = [
+        '<MPD minBufferTime="PT75S" type="dynamic">',
         '  <Period id="1" duration="PT30S">',
         '    <AdaptationSet mimeType="video/mp4">',
-        '      <InbandEventStream scheme_id_uri="urn:mpeg:dash:event:2012" />',
-        '      <Representation bandwidth="1">',
+        '      <Representation id="1" bandwidth="1">',
         '        <SegmentTemplate media="1.mp4" duration="1" />',
+        '      </Representation>',
+        '    </AdaptationSet>',
+        '    <AdaptationSet mimeType="video/mp4">',
+        '      <Representation id="1" bandwidth="1">',
+        '        <SegmentTemplate media="2.mp4" duration="1" />',
         '      </Representation>',
         '    </AdaptationSet>',
         '  </Period>',
         '</MPD>'
       ].join('\n');
-
-      fakeNetEngine.setResponseMapAsText({'dummy://foo': manifestText});
-      parser.start('dummy://foo', playerInterface)
-          .then(function() {
-            expect(fakeNetEngine.registerResponseFilter).toHaveBeenCalled();
-          })
-          .catch(fail)
-          .then(done);
-    });
-
-    it('updates manifest when emsg box is present', function(done) {
-      var manifestText = [
-        '<MPD minBufferTime="PT75S">',
-        '  <Period id="1" duration="PT30S">',
-        '    <AdaptationSet mimeType="video/mp4">',
-        '      <InbandEventStream scheme_id_uri="urn:mpeg:dash:event:2012" />',
-        '      <Representation bandwidth="1">',
-        '        <SegmentTemplate media="1.mp4" duration="1" />',
-        '      </Representation>',
-        '    </AdaptationSet>',
-        '  </Period>',
-        '</MPD>'
-      ].join('\n');
-
-      fakeNetEngine.setResponseMapAsText({'dummy://foo': manifestText});
-      parser.start('dummy://foo', playerInterface)
-          .then(function() {
-            expect(fakeNetEngine.registerResponseFilter).toHaveBeenCalled();
-            var filter =
-                fakeNetEngine.registerResponseFilter.calls.mostRecent().args[0];
-            var type = shaka.net.NetworkingEngine.RequestType.SEGMENT;
-            var response = {data: emsgUpdate.buffer};
-            fakeNetEngine.request.calls.reset();
-            filter(type, response);
-            expect(fakeNetEngine.request).toHaveBeenCalled();
-          })
-          .catch(fail)
-          .then(done);
-    });
-
-    it('dispatches an event on non-typical emsg content', function(done) {
-      var manifestText = [
-        '<MPD minBufferTime="PT75S">',
-        '  <Period id="1" duration="PT30S">',
-        '    <AdaptationSet mimeType="video/mp4">',
-        '      <InbandEventStream scheme_id_uri="urn:mpeg:dash:event:2012" />',
-        '      <Representation bandwidth="1">',
-        '        <SegmentTemplate media="1.mp4" duration="1" />',
-        '      </Representation>',
-        '    </AdaptationSet>',
-        '  </Period>',
-        '</MPD>'
-      ].join('\n');
-
-      fakeNetEngine.setResponseMapAsText({'dummy://foo': manifestText});
-      parser.start('dummy://foo', playerInterface)
-          .then(function() {
-            expect(fakeNetEngine.registerResponseFilter).toHaveBeenCalled();
-            var filter =
-                fakeNetEngine.registerResponseFilter.calls.mostRecent().args[0];
-            var type = shaka.net.NetworkingEngine.RequestType.SEGMENT;
-            var response = {data: emsgCustom.buffer};
-            fakeNetEngine.request.calls.reset();
-            filter(type, response);
-            expect(onEventSpy)
-                .toHaveBeenCalledWith(jasmine.any(shaka.util.FakeEvent));
-            var event =
-                onEventSpy.calls.mostRecent().args[0];
-            var emsg = event.detail;
-            expect(emsg.schemeIdUri).toBe('foo:bar:customdatascheme');
-            expect(emsg.value).toBe('1');
-            expect(emsg.timescale).toBe(1);
-            expect(emsg.presentationTimeDelta).toBe(8);
-            expect(emsg.eventDuration).toBe(0xFFFF);
-            expect(emsg.id).toBe(1);
-            expect(emsg.messageData).toEqual(
-                new Uint8Array([116, 101, 115, 116]));
-          })
-          .catch(fail)
-          .then(done);
-    });
-
-    it('does not update manifest when emsg box is not present', function(done) {
-      var manifestText = [
-        '<MPD minBufferTime="PT75S">',
-        '  <Period id="1" duration="PT30S">',
-        '    <AdaptationSet mimeType="video/mp4">',
-        '      <InbandEventStream scheme_id_uri="urn:mpeg:dash:event:2012" />',
-        '      <Representation bandwidth="1">',
-        '        <SegmentTemplate media="1.mp4" duration="1" />',
-        '      </Representation>',
-        '    </AdaptationSet>',
-        '  </Period>',
-        '</MPD>'
-      ].join('\n');
-
-      fakeNetEngine.setResponseMapAsText({'dummy://foo': manifestText});
-      parser.start('dummy://foo', playerInterface)
-          .then(function() {
-            expect(fakeNetEngine.registerResponseFilter).toHaveBeenCalled();
-            var filter =
-                fakeNetEngine.registerResponseFilter.calls.mostRecent().args[0];
-            var type = shaka.net.NetworkingEngine.RequestType.SEGMENT;
-            var response = {data: nonEmsg.buffer};
-            fakeNetEngine.request.calls.reset();
-            filter(type, response);
-            expect(fakeNetEngine.request).not.toHaveBeenCalled();
-            expect(onEventSpy).not.toHaveBeenCalled();
-          })
-          .catch(fail)
-          .then(done);
+      var error = new shaka.util.Error(
+          shaka.util.Error.Severity.CRITICAL,
+          shaka.util.Error.Category.MANIFEST,
+          shaka.util.Error.Code.DASH_DUPLICATE_REPRESENTATION_ID);
+      Dash.testFails(done, source, error);
     });
   });
 
@@ -863,7 +737,7 @@ describe('DashParser Manifest', function() {
                                variant.video.trickModeVideo;
           expect(trickModeVideo).toEqual(jasmine.objectContaining({
             id: 2,
-            type: 'video'
+            type: shaka.util.ManifestParserUtils.ContentType.VIDEO
           }));
         })
         .catch(fail)
@@ -939,10 +813,85 @@ describe('DashParser Manifest', function() {
           expect(manifest.periods.length).toBe(1);
           expect(manifest.periods[0].textStreams.length).toBe(2);
           // At one time, these came out as 'application' rather than 'text'.
-          expect(manifest.periods[0].textStreams[0].type).toBe('text');
-          expect(manifest.periods[0].textStreams[1].type).toBe('text');
+          var ContentType = shaka.util.ManifestParserUtils.ContentType;
+          expect(manifest.periods[0].textStreams[0].type)
+            .toBe(ContentType.TEXT);
+          expect(manifest.periods[0].textStreams[1].type)
+            .toBe(ContentType.TEXT);
         })
         .catch(fail)
         .then(done);
   });
+
+  it('ignores duplicate Representation IDs for VOD', function(done) {
+    var source = [
+      '<MPD minBufferTime="PT75S">',
+      '  <Period id="1" duration="PT30S">',
+      '    <AdaptationSet mimeType="video/mp4">',
+      '      <Representation id="1" bandwidth="1">',
+      '        <SegmentTemplate media="1.mp4">',
+      '          <SegmentTimeline>',
+      '            <S t="0" d="30" />',
+      '          </SegmentTimeline>',
+      '        </SegmentTemplate>',
+      '      </Representation>',
+      '    </AdaptationSet>',
+      '    <AdaptationSet mimeType="video/mp4">',
+      '      <Representation id="1" bandwidth="1">',
+      '        <SegmentTemplate media="2.mp4">',
+      '          <SegmentTimeline>',
+      '            <S t="0" d="30" />',
+      '          </SegmentTimeline>',
+      '        </SegmentTemplate>',
+      '      </Representation>',
+      '    </AdaptationSet>',
+      '  </Period>',
+      '</MPD>'
+    ].join('\n');
+
+    // See https://goo.gl/BAM3mi
+    // The old error was that with SegmentTimeline, duplicate Representation IDs
+    // would use the same segment index, so they would have the same references.
+    // This test proves that duplicate Representation IDs are allowed for VOD
+    // and that error doesn't occur.
+    fakeNetEngine.setResponseMapAsText({'dummy://foo': source});
+    parser.start('dummy://foo', playerInterface)
+        .then(function(manifest) {
+          expect(manifest.periods.length).toBe(1);
+          expect(manifest.periods[0].variants.length).toBe(2);
+
+          var variant1 = manifest.periods[0].variants[0];
+          var variant2 = manifest.periods[0].variants[1];
+          expect(variant1.video).toBeTruthy();
+          expect(variant2.video).toBeTruthy();
+          expect(variant1.video.getSegmentReference(1).getUris())
+              .toEqual(['dummy://foo/1.mp4']);
+          expect(variant2.video.getSegmentReference(1).getUris())
+              .toEqual(['dummy://foo/2.mp4']);
+        })
+        .catch(fail)
+        .then(done);
+  });
+
+  /**
+   * @param {string} manifestText
+   * @param {Uint8Array} emsgUpdate
+   * @param {Function} done
+   */
+  function emsgBoxPresenceHelper(manifestText, emsgUpdate, done) {
+    fakeNetEngine.setResponseMapAsText({'dummy://foo': manifestText});
+    parser.start('dummy://foo', playerInterface)
+        .then(function() {
+          expect(fakeNetEngine.registerResponseFilter).toHaveBeenCalled();
+          var filter =
+              fakeNetEngine.registerResponseFilter.calls.mostRecent().args[0];
+          var type = shaka.net.NetworkingEngine.RequestType.SEGMENT;
+          var response = {data: emsgUpdate.buffer};
+          fakeNetEngine.request.calls.reset();
+          filter(type, response);
+          expect(fakeNetEngine.request).toHaveBeenCalled();
+        })
+        .catch(fail)
+        .then(done);
+  }
 });

@@ -1,4 +1,107 @@
+## 2.0.8 (2017-04-07)
+
+Bugfixes:
+  - Suppress controls UI updates when hidden
+    - https://github.com/google/shaka-player/issues/749
+  - Revert keyboard navigation changes in demo, failing on Firefox
+
+
+## 2.0.7 (2017-03-29)
+
+New Features:
+  - Improved keyboard navigation in demo page for accessibility
+  - Play through small gaps at the start of the timeline
+  - Add a method for accessing the HTMLMediaElement from the Player
+    - https://github.com/google/shaka-player/pull/723
+  - Improved error reporting for HTTP errors
+
+Bugfixes:
+  - Fixed a DASH compliance bug in SegmentList w/ presentationTimeOffset
+  - Fixed compiler renaming in emsg events.
+    - https://github.com/google/shaka-player/issues/717
+  - Fix period transitions where text streams may be absent
+    - https://github.com/google/shaka-player/issues/715
+  - Fix Firefox DRM detection
+  - Fix cleanup of expired EME sessions for offline
+  - Fix demo app error thrown when offline is not supported
+  - Fix infinite loop in offline storage of SegmentTemplate-based DASH
+    - https://github.com/google/shaka-player/issues/739
+  - Fix contamination between tests
+
+
+## 2.0.6 (2017-02-24)
+
+New Features:
+  - Add Media Session info to demo
+    - https://github.com/google/shaka-player/pull/689
+  - Add support for xml:space in TTML parser
+    - https://github.com/google/shaka-player/issues/665
+  - Add fullscreenEnabled property to fullscreen polyfill
+    - https://github.com/google/shaka-player/issues/669
+  - Allow InbandEventStream elements at Representation level
+    - https://github.com/google/shaka-player/pull/687
+    - https://github.com/google/shaka-player/issues/686
+  - Warning for unsupported indexRange attribute
+  - Warning for duplicate Representation IDs
+
+Bugfixes:
+  - Fix cast support broken since 2.0.3
+    - https://github.com/google/shaka-player/issues/675
+  - Fix timeout errors in cast demo
+    - https://github.com/google/shaka-player/issues/684
+  - Fix infinite buffering caused by a race
+    - https://github.com/google/shaka-player/issues/600
+  - Fix race in StreamingEngine for multi-Period content
+    - https://github.com/google/shaka-player/issues/655
+  - Hide the controls when going fullscreen on phones
+    - https://github.com/google/shaka-player/issues/663
+  - Improve calculation of $TIME$ in SegmentTemplate
+    - https://github.com/google/shaka-player/issues/690
+    - https://github.com/google/shaka-player/pull/706
+  - Fix YouTube asset on demo app
+    - https://github.com/google/shaka-player/issues/682
+
+
+## 2.0.5 (2017-01-30)
+
+Bugfixes:
+  - Fix several bugs with multi-Period content
+    - Possible hang when seeking
+    - Fix race between buffering and Period transition
+    - Fix race between rapid Period transitions
+    - https://github.com/google/shaka-player/issues/655
+  - Fix hang in destroy() when EME sessions are in a bad state
+    - https://github.com/google/shaka-player/issues/664
+  - Fix doubling of time offset for segment-relative cues
+    - https://github.com/google/shaka-player/issues/595
+    - https://github.com/google/shaka-player/pull/599
+
+
+## 2.0.4 (2017-01-24)
+
+New features:
+  - Support for 4k on Chromecast Ultra
+  - Support for text tracks on Toshiba dTV
+    - https://github.com/google/shaka-player/issues/635
+    - https://github.com/google/shaka-player/pull/643
+
+Bugfixes:
+  - Fixed buffering issues at the end of streams in IE/Edge
+    - https://github.com/google/shaka-player/issues/658
+  - Fixed parsing of empty divs in TTML
+    - https://github.com/google/shaka-player/issues/646
+    - https://github.com/google/shaka-player/pull/650
+  - Fixed subtle bug in Promise.resolve polyfill on IE
+  - Fixed test failures on Chromecast
+
+Docs:
+  - Added additional docs for offline storage
+  - Updated and clarified debugging tutorial
+    - https://github.com/google/shaka-player/issues/653
+
+
 ## 2.0.3 (2017-01-09)
+
 New features:
   - Treat HTTP 202 status codes as failures
     - https://github.com/google/shaka-player/issues/645
@@ -25,6 +128,7 @@ Bugfixes:
 
 
 ## 2.0.2 (2016-12-15)
+
 New features:
   - Add support for Toshiba dTV
     - https://github.com/google/shaka-player/pull/605

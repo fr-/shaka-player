@@ -32,6 +32,7 @@ describe('DashParser SegmentTemplate', function() {
     playerInterface = {
       networkingEngine: fakeNetEngine,
       filterPeriod: function() {},
+      onTimelineRegionAdded: fail,  // Should not have any EventStream elements.
       onEvent: fail,
       onError: fail
     };
@@ -399,6 +400,7 @@ describe('DashParser SegmentTemplate', function() {
         '</MPD>'
       ].join('\n');
       var error = new shaka.util.Error(
+          shaka.util.Error.Severity.CRITICAL,
           shaka.util.Error.Category.MANIFEST,
           shaka.util.Error.Code.DASH_UNSUPPORTED_CONTAINER);
       Dash.testFails(done, source, error);
@@ -419,6 +421,7 @@ describe('DashParser SegmentTemplate', function() {
         '</MPD>'
       ].join('\n');
       var error = new shaka.util.Error(
+          shaka.util.Error.Severity.CRITICAL,
           shaka.util.Error.Category.MANIFEST,
           shaka.util.Error.Code.DASH_WEBM_MISSING_INIT);
       Dash.testFails(done, source, error);
@@ -429,6 +432,7 @@ describe('DashParser SegmentTemplate', function() {
         '<SegmentTemplate startNumber="1" />'
       ]);
       var error = new shaka.util.Error(
+          shaka.util.Error.Severity.CRITICAL,
           shaka.util.Error.Category.MANIFEST,
           shaka.util.Error.Code.DASH_NO_SEGMENT_INFO);
       Dash.testFails(done, source, error);
@@ -443,6 +447,7 @@ describe('DashParser SegmentTemplate', function() {
         '</SegmentTemplate>'
       ]);
       var error = new shaka.util.Error(
+          shaka.util.Error.Severity.CRITICAL,
           shaka.util.Error.Category.MANIFEST,
           shaka.util.Error.Code.DASH_NO_SEGMENT_INFO);
       Dash.testFails(done, source, error);

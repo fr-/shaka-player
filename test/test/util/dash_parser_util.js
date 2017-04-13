@@ -30,7 +30,8 @@ shaka.test.Dash.makeDashParser = function() {
     dash: {
       customScheme: function(node) { return null; },
       clockSyncUri: ''
-    }
+    },
+    hls: { defaultTimeOffset: 0 }
   });
   return parser;
 };
@@ -70,9 +71,13 @@ shaka.test.Dash.verifySegmentIndex = function(
   }
 
   // Make sure that the references stop at the end.
+  var lastExpectedReference = references[references.length - 1];
   var positionAfterEnd =
-      stream.findSegmentPosition(references[references.length - 1].endTime);
+      stream.findSegmentPosition(lastExpectedReference.endTime);
   expect(positionAfterEnd).toBe(null);
+  var referencePastEnd =
+      stream.getSegmentReference(lastExpectedReference.position + 1);
+  expect(referencePastEnd).toBe(null);
 };
 
 
@@ -90,6 +95,7 @@ shaka.test.Dash.testSegmentIndex = function(done, manifestText, references) {
     networkingEngine:
         new shaka.test.FakeNetworkingEngine({'dummy://foo': buffer}),
     filterPeriod: function() {},
+    onTimelineRegionAdded: fail,  // Should not have any EventStream elements.
     onEvent: fail,
     onError: fail
   };
@@ -116,6 +122,7 @@ shaka.test.Dash.testFails = function(done, manifestText, expectedError) {
     networkingEngine:
         new shaka.test.FakeNetworkingEngine({'dummy://foo': manifestData}),
     filterPeriod: function() {},
+    onTimelineRegionAdded: fail,  // Should not have any EventStream elements.
     onEvent: fail,
     onError: fail
   };

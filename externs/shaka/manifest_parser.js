@@ -39,10 +39,12 @@ shakaExtern.ManifestParser = function() {};
  * @typedef {{
  *   networkingEngine: !shaka.net.NetworkingEngine,
  *   filterPeriod: function(shakaExtern.Period),
+ *   onTimelineRegionAdded: function(shakaExtern.TimelineRegionInfo),
  *   onEvent: function(!Event),
  *   onError: function(!shaka.util.Error)
  * }}
  *
+ * @description
  * Defines the interface of the Player to the manifest parser.  This defines
  * fields and callback methods that the parser will use to interact with the
  * Player.  The callback methods do not to be called as member functions (i.e.
@@ -52,6 +54,8 @@ shakaExtern.ManifestParser = function() {};
  *   The networking engine to use for network requests.
  * @property {function(shakaExtern.Period)} filterPeriod
  *   Should be called on all new Periods so that they can be filtered.
+ * @property {function(shakaExtern.TimelineRegionInfo)} onTimelineRegionAdded
+ *   Should be called when a new timeline region is added.
  * @property {function(!Event)} onEvent
  *   Should be called to raise events.
  * @property {function(!shaka.util.Error)} onError
@@ -104,3 +108,23 @@ shakaExtern.ManifestParser.prototype.start = function(uri, playerInterface) {};
  * @exportDoc
  */
 shakaExtern.ManifestParser.prototype.stop = function() {};
+
+
+/**
+ * Tells the parser to do a manual manifest update.  Implementing this is
+ * optional and is only called when 'emsg' boxes are present.
+ * @exportDoc
+ */
+shakaExtern.ManifestParser.prototype.update = function() {};
+
+
+/**
+ * Tells the parser that the expiration time of an EME session has changed.
+ * Implementing this is optional.
+ *
+ * @param {string} sessionId
+ * @param {number} expiration
+ * @exportDoc
+ */
+shakaExtern.ManifestParser.prototype.onExpirationUpdated = function(
+    sessionId, expiration) {};
