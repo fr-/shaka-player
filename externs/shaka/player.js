@@ -136,6 +136,8 @@ shakaExtern.Stats;
  *   frameRate: ?number,
  *   mimeType: ?string,
  *   codecs: ?string,
+ *   audioCodec: ?string,
+ *   videoCodec: ?string,
  *   primary: boolean
  * }}
  *
@@ -160,8 +162,8 @@ shakaExtern.Stats;
  *   The language of the track, or 'und' if not given.  This is the exact
  *   value provided in the manifest; it may need to be normalized.
  * @property {?string} kind
- *   (only for text tracks) The kind of text track, either 'captions' or
- *   'subtitles'.
+ *   (only for text tracks) The kind of text track, either 'caption' or
+ *   'subtitle'.
  * @property {?number} width
  *   The video width provided in the manifest, if present.
  * @property {?number} height
@@ -172,6 +174,10 @@ shakaExtern.Stats;
  *   The MIME type of the content provided in the manifest.
  * @property {?string} codecs
  *   The audio/video codecs string provided in the manifest, if present.
+ * @property {?string} audioCodec
+ *   The audio codecs string provided in the manifest, if present.
+  * @property {?string} videoCodec
+ *   The video codecs string provided in the manifest, if present.
  * @property {boolean} primary
  *   True indicates that this in the primary language for the content.
  *   This flag is based on signals from the manifest.
@@ -412,7 +418,8 @@ shakaExtern.DrmConfiguration;
 /**
  * @typedef {{
  *   customScheme: shakaExtern.DashContentProtectionCallback,
- *   clockSyncUri: string
+ *   clockSyncUri: string,
+ *   ignoreDrmInfo: boolean
  * }}
  *
  * @property {shakaExtern.DashContentProtectionCallback} customScheme
@@ -423,6 +430,10 @@ shakaExtern.DrmConfiguration;
  *   A default clock sync URI to be used with live streams which do not
  *   contain any clock sync information.  The "Date" header from this URI
  *   will be used to determine the current time.
+ * @property {boolean} ignoreDrmInfo
+ *   If true will cause DASH parser to ignore DRM information specified
+ *   by the manifest and treat it as if it signaled no particular key
+ *   system and contained no init data. Defaults to false if not provided.
  *
  * @exportDoc
  */

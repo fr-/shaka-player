@@ -184,7 +184,8 @@ shakaExtern.InitDataOverride;
  *   in the content.  See also shakaExtern.InitDataOverride.
  * @property {Array.<string>} keyIds
  *   <i>Defaults to []</i> <br>
- *   If not empty, contains the default key IDs for this key system.
+ *   If not empty, contains the default key IDs for this key system, as
+ *   lowercase hex strings.
  * @exportDoc
  */
 shakaExtern.DrmInfo;
@@ -356,7 +357,7 @@ shakaExtern.GetSegmentReferenceFunction;
  *   The stream's height in pixels.
  * @property {(string|undefined)} kind
  *   <i>Text streams only.</i> <br>
- *   The kind of text stream.  For example, 'captions' or 'subtitles'.
+ *   The kind of text stream.  For example, 'caption' or 'subtitle'.
  *   @see https://goo.gl/k1HWA6
  * @property {boolean} encrypted
  *   <i>Defaults to false.</i><br>
