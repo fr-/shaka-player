@@ -12,12 +12,13 @@ build and deploy is in the sources.
 
 Shaka Player supports any browser that supports the necessary web standards.
 It is actively tested with:
-  - Chrome
+  - Chrome on Linux, Mac, Windows, Android, and ChromeOS
   - Chromecast
-  - Firefox
+  - Firefox on Linux, Mac, and Windows
   - Microsoft Edge
   - IE 11
   - Safari
+  - 2017 Tizen TV
   - [Widevine][]
   - [PlayReady][]
 
@@ -150,4 +151,5 @@ contributors to follow.
 
 ## FAQ ##
 
-For general help and before filing any bugs, please read the [FAQ](docs/faq.md).
+For general help and before filing any bugs, please read the
+[FAQ](docs/tutorials/faq.md).

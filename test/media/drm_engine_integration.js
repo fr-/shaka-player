@@ -215,7 +215,10 @@ describe('DrmEngine', function() {
               // This was probably a PlayReady persistent license.
             }
           }).then(function() {
-            return keyStatusEventSeen;
+            // Some platforms (notably 2017 Tizen TVs) do not fire key status
+            // events.
+            var keyStatusTimeout = shaka.test.Util.delay(5);
+            return Promise.race([keyStatusTimeout, keyStatusEventSeen]);
           }).then(function() {
             var call = onKeyStatusSpy.calls.mostRecent();
             if (call) {
@@ -247,9 +250,8 @@ describe('DrmEngine', function() {
   });  // describe('basic flow')
 
   function checkKeySystems() {
-    // TODO: re-enable these tests for PlayReady (b/38496036)
     // Our test asset for this suite can use any of these key systems:
-    if (!support['com.widevine.alpha']) {
+    if (!support['com.widevine.alpha'] && !support['com.microsoft.playready']) {
       // pending() throws a special exception that Jasmine uses to skip a test.
       // It can only be used from inside it(), not describe() or beforeEach().
       pending('Skipping DrmEngine tests.');

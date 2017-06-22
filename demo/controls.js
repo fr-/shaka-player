@@ -252,6 +252,11 @@ ShakaControls.prototype.onMouseMove_ = function(event) {
     this.lastTouchEventTime_ = null;
   }
 
+  // When there is a touch, we can get a 'mousemove' event after touch events.
+  // This should be treated as part of the touch, which has already been handled
+  if (this.lastTouchEventTime_ && event.type == 'mousemove')
+    return;
+
   // Use the cursor specified in the CSS file.
   this.videoContainer_.style.cursor = '';
   // Show the controls.
@@ -275,6 +280,10 @@ ShakaControls.prototype.onMouseMove_ = function(event) {
 
 /** @private */
 ShakaControls.prototype.onMouseOut_ = function() {
+  // We sometimes get 'mouseout' events with touches.  Since we can never leave
+  // the video element when touching, ignore.
+  if (this.lastTouchEventTime_) return;
+
   // Expire the timer early.
   if (this.mouseStillTimeoutId_) {
     window.clearTimeout(this.mouseStillTimeoutId_);
@@ -541,7 +550,11 @@ ShakaControls.prototype.onCastStatusChange_ = function(event) {
       isCasting ? 'inherit' : 'none';
   this.castReceiverName_.textContent =
       isCasting ? 'Casting to ' + this.castProxy_.receiverName() : '';
-  this.controls_.classList.toggle('casting', this.castProxy_.isCasting());
+  if (this.castProxy_.isCasting()) {
+    this.controls_.classList.add('casting');
+  } else {
+    this.controls_.classList.remove('casting');
+  }
 };
 
 
