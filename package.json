@@ -45,7 +45,7 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "prepublish": "in-publish && python ./build/checkversion.py && python ./build/all.py --force && python ./build/build.py --force --debug || not-in-publish"
+    "prepublish": "in-publish && python ./build/checkversion.py && python ./build/all.py --force && python ./build/build.py --force --debug || not-in-publish",
     "install": "bash build.sh"
   }
 }
