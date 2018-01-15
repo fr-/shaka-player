@@ -32,12 +32,19 @@ __Manifest parsers__
 
 __Subtitle/caption parsers__
   - Selected by MIME type
-  - Register with {@link shaka.media.TextEngine.registerParser}
+  - Register with {@link shaka.text.TextEngine.registerParser}
   - Default text parser plugins:
     - WebVTT: {@linksource shaka.media.VttTextParser} and
       {@linksource shaka.media.Mp4VttParser}
     - TTML: {@linksource shaka.media.TtmlTextParser} and
       {@linksource shaka.media.Mp4TtmlParser}
+
+__Subtitle/caption displayers__
+  - Configured at runtime on a Player instance
+  - Use {@link player.configure} and set the `textDisplayFactory` field
+  - Must implement the {@link shakaExtern.TextDisplayer} interface
+  - Default TextDisplayer implementation:
+    {@linksource shaka.text.SimpleTextDisplayer}
 
 __Networking plugins__
   - Selected by URI scheme (http, https, etc.)
@@ -48,7 +55,7 @@ __Networking plugins__
 
 __ABR plugins__
   - Configured at runtime on a Player instance
-  - Use {@link player.configure} and set the `abr.manager` field
+  - Use {@link player.configure} and set the `abrFactory` field
   - Must implement the {@link shakaExtern.AbrManager} interface
   - Default AbrManager implementation: {@linksource shaka.abr.SimpleAbrManager}
 
@@ -160,8 +167,8 @@ with the appropriate interfaces after the library is loaded.
 #### Giving Back
 
 If you have a great plugin that you'd like to contribute back to the community,
-we'd love to hear from you.  You can get in touch via our [mailing list][] to
+we'd love to hear from you.  You can get in touch via our [issue tracker][] to
 discuss it, and once it's ready, you can send a [pull request][] on github.
 
-[mailing list]: https://groups.google.com/forum/#!forum/shaka-player-users
+[issue tracker]: https://github.com/google/shaka-player/issues/new
 [pull request]: https://github.com/google/shaka-player/pull/new/master
