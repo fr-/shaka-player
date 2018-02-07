@@ -61,9 +61,11 @@ def check_js_lint():
   """Runs the JavaScript linter."""
   # TODO: things not enforced: property doc requirements
   logging.info('Running eslint...')
-
+  base = shakaBuildHelpers.get_source_base()
+  config_path = os.path.join(base, '.eslintrc.js')
   eslint = shakaBuildHelpers.get_node_binary('eslint')
-  cmd_line = eslint + get_lint_files()
+  cmd_line = eslint + ['--no-eslintrc', '--config', config_path] + get_lint_files()
+  logging.info(cmd_line)
   return shakaBuildHelpers.execute_get_code(cmd_line) == 0
 
 
